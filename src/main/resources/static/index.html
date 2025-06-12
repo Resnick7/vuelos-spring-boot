@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>SkyBooker - Reservas de Vuelos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="booking-container">
+    <div class="header-section">
+        <h1>🛫 SkyBooker</h1>
+        <p>Tu compañero perfecto para volar por el mundo</p>
+    </div>
+
+    <div class="main-content">
+        <nav class="navigation">
+            <button class="nav-btn active" onclick="switchSection('search')">
+                🔍 Explorar Vuelos
+            </button>
+            <button class="nav-btn" onclick="switchSection('reservations')">
+                📋 Historial de Reservas
+            </button>
+            <button class="nav-btn" onclick="switchSection('profile')">
+                👤 Gestión de Perfil
+            </button>
+        </nav>
+
+        <!-- Sección de Búsqueda -->
+        <div id="search-section" class="section active">
+            <h2 class="section-title">Descubre tu próximo destino</h2>
+            <form class="search-form" id="flight-search-form">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="destination-city">🌍 Ciudad de Destino</label>
+                        <select id="destination-city" required>
+                            <option value="">Cargando destinos...</option>
+                        </select>
+                        <div id="city-loading" style="display: none; font-size: 0.8rem; color: #6c757d; margin-top: 5px;">
+                            <span>⏳ Cargando opciones...</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="departure-date">📅 Fecha de Partida</label>
+                        <input type="date" id="departure-date" required>
+                    </div>
+                </div>
+                <button type="submit" class="search-btn">
+                    🚀 Explorar Vuelos Disponibles
+                </button>
+            </form>
+
+            <div id="flight-results" class="results-section">
+                <h3>✈️ Vuelos Encontrados</h3>
+                <div id="flights-container"></div>
+            </div>
+
+            <!-- Formulario de Reserva -->
+            <div id="reservation-form-container" style="display: none; margin-top: 30px; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e1e5f2;">
+                <h3 style="color: #333; margin-bottom: 15px;">🎫 Completar Reserva</h3>
+                <form id="reservation-form" onsubmit="submitReservation(event)">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label for="user-id-input">👤 Usuario</label>
+                        <select id="user-id-input" required>
+                            <option value="">Cargando usuarios...</option>
+                        </select>
+                        <div id="user-loading" style="display: none; font-size: 0.8rem; color: #6c757d; margin-top: 5px;">
+                            <span>⏳ Cargando opciones...</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="flight-id-input">
+                    <button type="submit" id="submit-reservation-btn" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 15px; cursor: pointer; width: 100%;">
+                        Confirmar Reserva
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sección de Reservas -->
+        <div id="reservations-section" class="section">
+            <h2 class="section-title">Consulta tus reservas</h2>
+            <div class="reservations-section">
+                <div class="user-input">
+                    <div class="input-group" style="max-width: 400px; margin: 0 auto;">
+                        <label for="user-identifier">🆔 Código de Usuario</label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="number" id="user-identifier" placeholder="Introduce tu código único">
+                            <button type="button" onclick="fetchReservations()" class="load-btn">
+                                Consultar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="user-reservations"></div>
+            </div>
+        </div>
+
+        <!-- Sección de Perfil -->
+        <div id="profile-section" class="section">
+            <h2 class="section-title">Administra tu información</h2>
+            <form class="profile-form" id="user-profile-form">
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="first-name">👤 Nombre</label>
+                        <input type="text" id="first-name" placeholder="Tu nombre" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="last-name">👥 Apellido</label>
+                        <input type="text" id="last-name" placeholder="Tu apellido" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="user-email">📧 Correo Electrónico</label>
+                        <input type="email" id="user-email" placeholder="correo@ejemplo.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="user-password">🔒 Contraseña</label>
+                        <input type="password" id="user-password" placeholder="Contraseña segura" required>
+                    </div>
+                </div>
+                <button type="submit" class="save-btn">
+                    Actualizar Información
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
