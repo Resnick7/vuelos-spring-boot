@@ -22,9 +22,6 @@
             <button class="nav-btn" onclick="switchSection('reservations')">
                 📋 Historial de Reservas
             </button>
-            <button class="nav-btn" onclick="switchSection('profile')">
-                👤 Gestión de Perfil
-            </button>
         </nav>
 
         <!-- Sección de Búsqueda -->
@@ -42,8 +39,11 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <label for="departure-date">📅 Fecha de Partida</label>
-                        <input type="date" id="departure-date" required>
+                        <label for="departure-date">📅 Fecha de Partida <span style="color: #999; font-weight: normal;">(opcional)</span></label>
+                        <input type="date" id="departure-date">
+                        <small style="color: #666; font-size: 0.8rem; margin-top: 5px; display: block;">
+                            💡 Deja vacío para ver todos los vuelos disponibles
+                        </small>
                     </div>
                 </div>
                 <button type="submit" class="search-btn">
@@ -94,36 +94,6 @@
                 </div>
                 <div id="user-reservations"></div>
             </div>
-        </div>
-
-        <!-- Sección de Perfil -->
-        <div id="profile-section" class="section">
-            <h2 class="section-title">Administra tu información</h2>
-            <form class="profile-form" id="user-profile-form">
-                <div class="form-row">
-                    <div class="input-group">
-                        <label for="first-name">👤 Nombre</label>
-                        <input type="text" id="first-name" placeholder="Tu nombre" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="last-name">👥 Apellido</label>
-                        <input type="text" id="last-name" placeholder="Tu apellido" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="input-group">
-                        <label for="user-email">📧 Correo Electrónico</label>
-                        <input type="email" id="user-email" placeholder="correo@ejemplo.com" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="user-password">🔒 Contraseña</label>
-                        <input type="password" id="user-password" placeholder="Contraseña segura" required>
-                    </div>
-                </div>
-                <button type="submit" class="save-btn">
-                    Actualizar Información
-                </button>
-            </form>
         </div>
     </div>
 </div>

@@ -13,10 +13,7 @@ import java.util.stream.Collectors;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping(path = "/vuelos")
-public class VueloController {
-
-    @Autowired
-    private VueloService vueloService;
+public class VueloController extends BaseControllerImpl<Vuelo, VueloServiceImpl> {
 
     @Autowired
     private CiudadService ciudadService;
@@ -30,221 +27,197 @@ public class VueloController {
     @Autowired
     private AeropuertoService aeropuertoService;
 
-    @GetMapping("/listar")
-    public List<Vuelo> obtenerVuelos() throws Exception {
-        return vueloService.findAll();
-    }
+    @Autowired
+    private TarifaService tarifaService;
 
-    @PostMapping("/agregar")
-    public Vuelo agregarVuelo(@RequestBody Vuelo vuelo) throws Exception {
-        return vueloService.save(vuelo);
-    }
-
-    // ----------------------------------------------------------
-    private void inicializarDatosBasicos() throws Exception {
+    @GetMapping("/buscar")
+    public ResponseEntity<?> buscarVuelos(
+            @RequestParam(required = false) String ciudad,
+            @RequestParam(required = false) String fecha) {
         try {
-            // 1. Crear ciudades si no existen
-            if (ciudadService.findAll().isEmpty()) {
-                crearCiudadesBasicas();
+            List<Vuelo> vuelos = servicio.findAll();
+
+            // Filtrar por ciudad si se proporciona
+            if (ciudad != null && !ciudad.trim().isEmpty()) {
+                vuelos = vuelos.stream()
+                        .filter(vuelo -> vuelo.getAeropuertos() != null &&
+                                vuelo.getAeropuertos().stream()
+                                        .anyMatch(aeropuerto ->
+                                                aeropuerto.getCiudad() != null &&
+                                                        aeropuerto.getCiudad().getNombreCiudad() != null &&
+                                                        aeropuerto.getCiudad().getNombreCiudad().toLowerCase()
+                                                                .contains(ciudad.toLowerCase())))
+                        .collect(Collectors.toList());
             }
 
-            // 2. Crear usuarios si no existen
-            if (usuarioService.findAll().isEmpty()) {
-                crearUsuariosBasicos();
+            // Limitar a 10 resultados para mejor rendimiento
+            if (vuelos.size() > 10) {
+                vuelos = vuelos.subList(0, 10);
             }
 
-            // 3. Crear aerolíneas si no existen
-            if (aerolineaService.findAll().isEmpty()) {
-                crearAerolineasBasicas();
-            }
-
-            // 4. Crear aeropuertos si no existen
-            if (aeropuertoService.findAll().isEmpty()) {
-                crearAeropuertosBasicos();
-            }
+            return ResponseEntity.ok(vuelos);
 
         } catch (Exception e) {
-            System.err.println("Error en inicialización básica: " + e.getMessage());
-            throw e;
+            System.err.println("Error al buscar vuelos: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al buscar vuelos: " + e.getMessage());
         }
     }
 
-    private void crearCiudadesBasicas() {
-        String[][] ciudades = {
-                {"Madrid", "España"},
-                {"Barcelona", "España"},
-                {"París", "Francia"},
-                {"Londres", "Reino Unido"},
-                {"Roma", "Italia"},
-                {"Berlín", "Alemania"},
-                {"Ámsterdam", "Países Bajos"},
-                {"Lisboa", "Portugal"},
-                {"Buenos Aires", "Argentina"},
-                {"Nueva York", "Estados Unidos"}
-        };
-
-        for (String[] datos : ciudades) {
-            try {
-                Ciudad ciudad = new Ciudad();
-                ciudad.setNombreCiudad(datos[0]);
-                ciudadService.save(ciudad);
-                System.out.println("Ciudad creada: " + datos[0]);
-            } catch (Exception e) {
-                System.err.println("Error al crear ciudad " + datos[0] + ": " + e.getMessage());
-            }
-        }
-    }
-
-    private void crearUsuariosBasicos() {
-        String[][] usuarios = {
-                {"Ana", "González", "ana.gonzalez@email.com"},
-                {"Juan", "Pérez", "juan.perez@email.com"},
-                {"María", "López", "maria.lopez@email.com"},
-                {"Carlos", "Rodríguez", "carlos.rodriguez@email.com"},
-                {"Laura", "Martínez", "laura.martinez@email.com"}
-        };
-
-        for (String[] datos : usuarios) {
-            try {
-                Usuario usuario = new Usuario();
-                usuario.setNombrePersona(datos[0]);
-                usuario.setApellidoPersona(datos[1]);
-                usuario.setCorreoElectronicoUsuario(datos[2]);
-                usuario.setContaseniaUsuario("password123"); // En producción, encriptar
-                usuarioService.save(usuario);
-                System.out.println("Usuario creado: " + datos[0] + " " + datos[1]);
-            } catch (Exception e) {
-                System.err.println("Error al crear usuario " + datos[0] + ": " + e.getMessage());
-            }
-        }
-    }
-
-    private void crearAerolineasBasicas() {
-        String[] aerolineas = {
-                "Iberia", "Lufthansa", "Air France", "British Airways",
-                "KLM", "Alitalia", "Turkish Airlines", "Emirates"
-        };
-
-        for (String nombre : aerolineas) {
-            try {
-                Aerolinea aerolinea = new Aerolinea();
-                aerolinea.setNombreAerolinea(nombre);
-                aerolineaService.save(aerolinea);
-                System.out.println("Aerolínea creada: " + nombre);
-            } catch (Exception e) {
-                System.err.println("Error al crear aerolínea " + nombre + ": " + e.getMessage());
-            }
-        }
-    }
-
-    private void crearAeropuertosBasicos() throws Exception {
-        List<Ciudad> ciudades = ciudadService.findAll();
-        if (ciudades.isEmpty()) {
-            System.err.println("No hay ciudades disponibles para crear aeropuertos");
-            return;
-        }
-
-        Object[][] aeropuertos = {
-                {123, "Aeropuerto Adolfo Suárez Madrid-Barajas", "Madrid"},
-                {234, "Aeropuerto Josep Tarradellas Barcelona-El Prat", "Barcelona"},
-                {345, "Aeropuerto Charles de Gaulle", "París"},
-                {456, "Aeropuerto de Heathrow", "Londres"},
-                {567, "Aeropuerto Leonardo da Vinci", "Roma"}
-        };
-
-        for (Object[] datos : aeropuertos) {
-            try {
-                Long codigo = (Long) datos[0];
-                String nombre = (String) datos[1];
-                String nombreCiudad = (String) datos[2];
-
-                // Buscar la ciudad
-                Ciudad ciudad = ciudades.stream()
-                        .filter(c -> c.getNombreCiudad().equals(nombreCiudad))
-                        .findFirst()
-                        .orElse(null);
-
-                if (ciudad != null) {
-                    Aeropuerto aeropuerto = new Aeropuerto();
-                    aeropuerto.setId(codigo);
-                    aeropuerto.setNombreAeropuerto(nombre);
-                    aeropuerto.setCiudad(ciudad);
-                    aeropuertoService.save(aeropuerto);
-                    System.out.println("Aeropuerto creado: " + nombre);
-                }
-            } catch (Exception e) {
-                System.err.println("Error al crear aeropuerto: " + e.getMessage());
-            }
-        }
-    }
-
-//    @GetMapping("/buscar")
-//    public ResponseEntity<?> buscarVuelos(
-//            @RequestParam(required = false) String ciudad,
-//            @RequestParam(required = false) String fecha) {
-//        try {
-//            List<Vuelo> vuelos;
-//
-//            if (ciudad != null && !ciudad.trim().isEmpty()) {
-//                // Buscar vuelos por ciudad de destino
-//                vuelos = vueloService.findByDestinationCity(ciudad.trim());
-//            } else {
-//                // Si no se especifica ciudad, devolver todos los vuelos
-//                vuelos = vueloService.findAll();
-//            }
-//
-//            // Si no hay vuelos, crear algunos de ejemplo
-//            if (vuelos.isEmpty() && ciudad != null) {
-//                vuelos = crearVuelosEjemplo(ciudad);
-//            }
-//
-//            return ResponseEntity.ok(vuelos);
-//
-//        } catch (Exception e) {
-//            System.err.println("Error al buscar vuelos: " + e.getMessage());
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body("Error al buscar vuelos: " + e.getMessage());
-//        }
-//    }
-
-    private List<Vuelo> crearVuelosEjemplo(String ciudadDestino) {
-        List<Vuelo> vuelosEjemplo = new ArrayList<>();
-
+    @GetMapping("/datos-reserva")
+    public ResponseEntity<?> obtenerDatosReserva() {
         try {
+            Map<String, Object> datos = new HashMap<>();
+
+            // Obtener ciudades
+            List<Ciudad> ciudades = ciudadService.findAll();
+            datos.put("ciudades", ciudades);
+
+            // Obtener usuarios
+            List<Usuario> usuarios = usuarioService.findAll();
+            datos.put("usuarios", usuarios);
+
+            // Obtener aerolíneas
+            List<Aerolinea> aerolineas = aerolineaService.findAll();
+            datos.put("aerolineas", aerolineas);
+
+            return ResponseEntity.ok(datos);
+
+        } catch (Exception e) {
+            System.err.println("Error al obtener datos de reserva: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener datos: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/test-datos")
+    public ResponseEntity<?> testDatos() {
+        try {
+            Map<String, Object> datos = new HashMap<>();
+
+            List<Ciudad> ciudades = ciudadService.findAll();
+            List<Usuario> usuarios = usuarioService.findAll();
+            List<Vuelo> vuelos = servicio.findAll();
+            List<Aerolinea> aerolineas = aerolineaService.findAll();
+
+            datos.put("numCiudades", ciudades.size());
+            datos.put("numUsuarios", usuarios.size());
+            datos.put("numVuelos", vuelos.size());
+            datos.put("numAerolineas", aerolineas.size());
+
+            datos.put("mensaje", "Conexión exitosa con la base de datos");
+
+            return ResponseEntity.ok(datos);
+
+        } catch (Exception e) {
+            System.err.println("Error en test de datos: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error en test: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/estadisticas")
+    public ResponseEntity<?> obtenerEstadisticas() {
+        try {
+            Map<String, Object> estadisticas = new HashMap<>();
+
+            List<Vuelo> vuelos = servicio.findAll();
             List<Aerolinea> aerolineas = aerolineaService.findAll();
             List<Aeropuerto> aeropuertos = aeropuertoService.findAll();
 
-            if (aerolineas.isEmpty() || aeropuertos.isEmpty()) {
-                System.out.println("No hay aerolíneas o aeropuertos para crear vuelos de ejemplo");
-                return vuelosEjemplo;
-            }
+            estadisticas.put("totalVuelos", vuelos.size());
+            estadisticas.put("totalAerolineas", aerolineas.size());
+            estadisticas.put("totalAeropuertos", aeropuertos.size());
 
-            // Buscar aeropuerto de destino
-            Aeropuerto aeropuertoDestino = aeropuertos.stream()
-                    .filter(a -> a.getCiudad().getNombreCiudad().toLowerCase()
-                            .contains(ciudadDestino.toLowerCase()))
-                    .findFirst()
-                    .orElse(aeropuertos.get(0));
+            // Estadísticas por aerolínea
+            Map<String, Long> vuelosPorAerolinea = vuelos.stream()
+                    .filter(v -> v.getAerolinea() != null)
+                    .collect(Collectors.groupingBy(
+                            v -> v.getAerolinea().getNombreAerolinea(),
+                            Collectors.counting()
+                    ));
+            estadisticas.put("vuelosPorAerolinea", vuelosPorAerolinea);
 
-            // Crear 3 vuelos de ejemplo
-            for (int i = 0; i < 3; i++) {
-                Vuelo vuelo = new Vuelo();
-                vuelo.setAerolinea(aerolineas.get(i % aerolineas.size()));
+            // Ciudades más populares (como destino)
+            Map<String, Long> destinosPopulares = vuelos.stream()
+                    .filter(v -> v.getAeropuertos() != null && v.getAeropuertos().size() > 1)
+                    .map(v -> v.getAeropuertos().get(v.getAeropuertos().size() - 1)) // Último aeropuerto = destino
+                    .filter(a -> a.getCiudad() != null)
+                    .collect(Collectors.groupingBy(
+                            a -> a.getCiudad().getNombreCiudad(),
+                            Collectors.counting()
+                    ));
+            estadisticas.put("destinosPopulares", destinosPopulares);
 
-                Set<Aeropuerto> aeropuertosVuelo = new HashSet<>();
-                aeropuertosVuelo.add(aeropuertos.get(0)); // Origen
-                aeropuertosVuelo.add(aeropuertoDestino); // Destino
-                vuelo.setAeropuertos((List<Aeropuerto>) aeropuertosVuelo);
-
-                Vuelo vueloGuardado = vueloService.save(vuelo);
-                vuelosEjemplo.add(vueloGuardado);
-            }
+            return ResponseEntity.ok(estadisticas);
 
         } catch (Exception e) {
-            System.err.println("Error al crear vuelos de ejemplo: " + e.getMessage());
+            System.err.println("Error al obtener estadísticas: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener estadísticas: " + e.getMessage());
         }
+    }
 
-        return vuelosEjemplo;
+    @GetMapping("/por-destino/{nombreCiudad}")
+    public ResponseEntity<?> buscarVuelosPorDestino(@PathVariable String nombreCiudad) {
+        try {
+            List<Vuelo> vuelos = servicio.findAll();
+
+            List<Vuelo> vuelosDestino = vuelos.stream()
+                    .filter(vuelo -> vuelo.getAeropuertos() != null &&
+                            vuelo.getAeropuertos().stream()
+                                    .anyMatch(aeropuerto ->
+                                            aeropuerto.getCiudad() != null &&
+                                                    aeropuerto.getCiudad().getNombreCiudad() != null &&
+                                                    aeropuerto.getCiudad().getNombreCiudad().toLowerCase()
+                                                            .contains(nombreCiudad.toLowerCase())))
+                    .limit(15) // Limitar resultados
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(vuelosDestino);
+
+        } catch (Exception e) {
+            System.err.println("Error al buscar vuelos por destino: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al buscar vuelos: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/con-tarifas")
+    public ResponseEntity<?> obtenerVuelosConTarifas() {
+        try {
+            List<Vuelo> vuelos = servicio.findAll();
+
+            // Enriquecer vuelos con información de tarifas
+            List<Map<String, Object>> vuelosConTarifas = vuelos.stream()
+                    .limit(20) // Limitar para mejor rendimiento
+                    .map(vuelo -> {
+                        Map<String, Object> vueloMap = new HashMap<>();
+                        vueloMap.put("id", vuelo.getId());
+                        vueloMap.put("aerolinea", vuelo.getAerolinea());
+                        vueloMap.put("aeropuertos", vuelo.getAeropuertos());
+                        vueloMap.put("piloto", vuelo.getPiloto());
+
+                        // Obtener tarifas para este vuelo
+                        try {
+                            List<Tarifa> tarifas = tarifaService.findAll().stream()
+                                    .filter(t -> t.getVuelo() != null && t.getVuelo().getId().equals(vuelo.getId()))
+                                    .collect(Collectors.toList());
+                            vueloMap.put("tarifas", tarifas);
+                        } catch (Exception e) {
+                            vueloMap.put("tarifas", new ArrayList<>());
+                        }
+
+                        return vueloMap;
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(vuelosConTarifas);
+
+        } catch (Exception e) {
+            System.err.println("Error al obtener vuelos con tarifas: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener vuelos con tarifas: " + e.getMessage());
+        }
     }
 }

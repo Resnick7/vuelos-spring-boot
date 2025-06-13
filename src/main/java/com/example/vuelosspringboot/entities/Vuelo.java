@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 import java.util.List;
 
 @Entity
@@ -15,13 +14,13 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
+public class Vuelo extends Base {
 
-public class Vuelo extends Base{
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "fk_avion")
-    private Avion avion;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "fk_aerolinea")
+    private Aerolinea aerolinea;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "vuelo_aeropuerto",
             joinColumns = @JoinColumn(name = "vuelo_id"),
@@ -29,9 +28,10 @@ public class Vuelo extends Base{
     )
     private List<Aeropuerto> aeropuertos;
 
+    // Campos opcionales - pueden ser null
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "fk_aerolinea")
-    private Aerolinea aerolinea = new Aerolinea();
+    @JoinColumn(name = "fk_avion")
+    private Avion avion;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "fk_fecha")
@@ -41,11 +41,6 @@ public class Vuelo extends Base{
     @JoinColumn(name = "fk_piloto")
     private Piloto piloto;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "vuelo_tarifa",
-            joinColumns = @JoinColumn(name = "vuelo_id"),
-            inverseJoinColumns = @JoinColumn(name = "tarifa_id")
-    )
+    @OneToMany(mappedBy = "vuelo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Tarifa> tarifas;
 }
