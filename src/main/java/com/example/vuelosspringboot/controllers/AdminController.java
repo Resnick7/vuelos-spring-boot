@@ -49,36 +49,6 @@ public class AdminController {
             dashboard.put("totalVuelos", vueloService.findAll().size());
             dashboard.put("totalReservas", reservaService.findAll().size());
 
-            // Top 5 ciudades más populares como destino
-            List<Vuelo> vuelos = vueloService.findAll();
-            Map<String, Long> destinosPopulares = vuelos.stream()
-                    .filter(v -> v.getAeropuertos() != null && v.getAeropuertos().size() > 1)
-                    .map(v -> v.getAeropuertos().get(v.getAeropuertos().size() - 1))
-                    .filter(a -> a.getCiudad() != null)
-                    .collect(Collectors.groupingBy(
-                            a -> a.getCiudad().getNombreCiudad(),
-                            Collectors.counting()
-                    ))
-                    .entrySet().stream()
-                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                    .limit(5)
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue,
-                            (e1, e2) -> e1,
-                            LinkedHashMap::new
-                    ));
-            dashboard.put("destinosPopulares", destinosPopulares);
-
-            // Distribución de vuelos por aerolínea
-            Map<String, Long> vuelosPorAerolinea = vuelos.stream()
-                    .filter(v -> v.getAerolinea() != null)
-                    .collect(Collectors.groupingBy(
-                            v -> v.getAerolinea().getNombreAerolinea(),
-                            Collectors.counting()
-                    ));
-            dashboard.put("vuelosPorAerolinea", vuelosPorAerolinea);
-
             return ResponseEntity.ok(dashboard);
 
         } catch (Exception e) {
@@ -92,14 +62,12 @@ public class AdminController {
         try {
             List<Ciudad> ciudades = ciudadService.findAll();
 
-            // Enriquecer con información de vuelos disponibles
             List<Map<String, Object>> ciudadesConVuelos = ciudades.stream()
                     .map(ciudad -> {
                         Map<String, Object> ciudadMap = new HashMap<>();
                         ciudadMap.put("id", ciudad.getId());
                         ciudadMap.put("nombre", ciudad.getNombreCiudad());
 
-                        // Contar vuelos disponibles hacia esta ciudad
                         try {
                             List<Vuelo> vuelos = vueloService.findAll();
                             long vuelosDisponibles = vuelos.stream()
@@ -132,7 +100,6 @@ public class AdminController {
         try {
             Map<String, Object> resultado = new HashMap<>();
 
-            // Contar datos actuales
             int ciudadesActuales = ciudadService.findAll().size();
             int usuariosActuales = usuarioService.findAll().size();
             int vuelosActuales = vueloService.findAll().size();
@@ -150,7 +117,6 @@ public class AdminController {
                 return ResponseEntity.ok(resultado);
             }
 
-            // Aquí podrías agregar lógica para limpiar datos si fuera necesario
             resultado.put("mensaje", "Para reinicializar completamente, reinicia la aplicación o usa la consola H2.");
             resultado.put("recomendacion", "Usa /h2-console para gestionar la base de datos manualmente.");
             resultado.put("urlH2", "/h2-console");
@@ -168,7 +134,6 @@ public class AdminController {
         try {
             Map<String, Object> salud = new HashMap<>();
 
-            // Verificar conectividad con servicios
             boolean ciudadesOk = ciudadService.findAll() != null;
             boolean usuariosOk = usuarioService.findAll() != null;
             boolean vuelosOk = vueloService.findAll() != null;
@@ -196,7 +161,6 @@ public class AdminController {
         try {
             Map<String, Object> debug = new HashMap<>();
 
-            // Contar registros en cada tabla
             List<Ciudad> ciudades = ciudadService.findAll();
             List<Usuario> usuarios = usuarioService.findAll();
             List<Aerolinea> aerolineas = aerolineaService.findAll();
@@ -211,7 +175,6 @@ public class AdminController {
                     "vuelos", vuelos.size()
             ));
 
-            // Ejemplos de datos
             debug.put("ejemploCiudades", ciudades.stream()
                     .limit(5)
                     .map(c -> Map.of("id", c.getId(), "nombre", c.getNombreCiudad()))
@@ -222,7 +185,6 @@ public class AdminController {
                     .map(a -> Map.of("id", a.getId(), "nombre", a.getNombreAerolinea()))
                     .collect(Collectors.toList()));
 
-            // Información detallada de vuelos
             List<Map<String, Object>> vuelosDetalle = vuelos.stream()
                     .limit(5)
                     .map(v -> {
@@ -246,7 +208,6 @@ public class AdminController {
 
             debug.put("ejemploVuelos", vuelosDetalle);
 
-            // Estado de la aplicación
             debug.put("estadoGeneral", vuelos.size() > 0 ? "DATOS_DISPONIBLES" : "SIN_VUELOS");
             debug.put("timestamp", new Date());
 

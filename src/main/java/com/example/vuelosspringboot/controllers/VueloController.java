@@ -37,7 +37,6 @@ public class VueloController extends BaseControllerImpl<Vuelo, VueloServiceImpl>
         try {
             List<Vuelo> vuelos = servicio.findAll();
 
-            // Filtrar por ciudad si se proporciona
             if (ciudad != null && !ciudad.trim().isEmpty()) {
                 vuelos = vuelos.stream()
                         .filter(vuelo -> vuelo.getAeropuertos() != null &&
@@ -50,7 +49,6 @@ public class VueloController extends BaseControllerImpl<Vuelo, VueloServiceImpl>
                         .collect(Collectors.toList());
             }
 
-            // Limitar a 10 resultados para mejor rendimiento
             if (vuelos.size() > 10) {
                 vuelos = vuelos.subList(0, 10);
             }
@@ -129,7 +127,6 @@ public class VueloController extends BaseControllerImpl<Vuelo, VueloServiceImpl>
             estadisticas.put("totalAerolineas", aerolineas.size());
             estadisticas.put("totalAeropuertos", aeropuertos.size());
 
-            // Estadísticas por aerolínea
             Map<String, Long> vuelosPorAerolinea = vuelos.stream()
                     .filter(v -> v.getAerolinea() != null)
                     .collect(Collectors.groupingBy(
@@ -138,10 +135,9 @@ public class VueloController extends BaseControllerImpl<Vuelo, VueloServiceImpl>
                     ));
             estadisticas.put("vuelosPorAerolinea", vuelosPorAerolinea);
 
-            // Ciudades más populares (como destino)
             Map<String, Long> destinosPopulares = vuelos.stream()
                     .filter(v -> v.getAeropuertos() != null && v.getAeropuertos().size() > 1)
-                    .map(v -> v.getAeropuertos().get(v.getAeropuertos().size() - 1)) // Último aeropuerto = destino
+                    .map(v -> v.getAeropuertos().get(v.getAeropuertos().size() - 1))
                     .filter(a -> a.getCiudad() != null)
                     .collect(Collectors.groupingBy(
                             a -> a.getCiudad().getNombreCiudad(),
@@ -171,7 +167,7 @@ public class VueloController extends BaseControllerImpl<Vuelo, VueloServiceImpl>
                                                     aeropuerto.getCiudad().getNombreCiudad() != null &&
                                                     aeropuerto.getCiudad().getNombreCiudad().toLowerCase()
                                                             .contains(nombreCiudad.toLowerCase())))
-                    .limit(15) // Limitar resultados
+                    .limit(15)
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(vuelosDestino);
@@ -188,9 +184,8 @@ public class VueloController extends BaseControllerImpl<Vuelo, VueloServiceImpl>
         try {
             List<Vuelo> vuelos = servicio.findAll();
 
-            // Enriquecer vuelos con información de tarifas
             List<Map<String, Object>> vuelosConTarifas = vuelos.stream()
-                    .limit(20) // Limitar para mejor rendimiento
+                    .limit(20)
                     .map(vuelo -> {
                         Map<String, Object> vueloMap = new HashMap<>();
                         vueloMap.put("id", vuelo.getId());
@@ -198,7 +193,6 @@ public class VueloController extends BaseControllerImpl<Vuelo, VueloServiceImpl>
                         vueloMap.put("aeropuertos", vuelo.getAeropuertos());
                         vueloMap.put("piloto", vuelo.getPiloto());
 
-                        // Obtener tarifas para este vuelo
                         try {
                             List<Tarifa> tarifas = tarifaService.findAll().stream()
                                     .filter(t -> t.getVuelo() != null && t.getVuelo().getId().equals(vuelo.getId()))

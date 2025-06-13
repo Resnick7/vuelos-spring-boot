@@ -3,28 +3,22 @@ let currentSection = 'search';
 let ciudadesDisponibles = [];
 let usuariosDisponibles = [];
 
-// Función para cambiar de sección
 function switchSection(sectionName) {
-    // Ocultar todas las secciones
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
 
-    // Remover clase activa de todos los botones
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
     });
 
-    // Mostrar la sección seleccionada
     document.getElementById(sectionName + '-section').classList.add('active');
 
-    // Activar el botón correspondiente
     event.target.classList.add('active');
 
     currentSection = sectionName;
 }
 
-// Función para cargar datos necesarios para reservas
 function cargarDatosReserva() {
     console.log('🔄 Iniciando carga de datos de reserva...');
 
@@ -39,7 +33,6 @@ function cargarDatosReserva() {
         .then(data => {
             console.log('📦 Datos recibidos:', data);
 
-            // Procesar ciudades
             if (data.ciudades && Array.isArray(data.ciudades)) {
                 ciudadesDisponibles = data.ciudades;
                 console.log(`🏙️ Ciudades cargadas: ${ciudadesDisponibles.length}`);
@@ -49,7 +42,6 @@ function cargarDatosReserva() {
                 cargarCiudadesPredeterminadas();
             }
 
-            // Procesar usuarios
             if (data.usuarios && Array.isArray(data.usuarios)) {
                 usuariosDisponibles = data.usuarios;
                 console.log(`👥 Usuarios cargados: ${usuariosDisponibles.length}`);
@@ -65,13 +57,11 @@ function cargarDatosReserva() {
         });
 }
 
-// Función para cargar datos predeterminados en caso de error
 function cargarDatosPredeterminados() {
     cargarCiudadesPredeterminadas();
     cargarUsuariosPredeterminados();
 }
 
-// Función para actualizar el select de ciudades
 function actualizarSelectCiudades() {
     const selectCiudades = document.getElementById('destination-city');
     const loadingIndicator = document.getElementById('city-loading');
@@ -93,7 +83,6 @@ function actualizarSelectCiudades() {
         selectCiudades.appendChild(defaultOption);
 
         if (ciudadesDisponibles && ciudadesDisponibles.length > 0) {
-            // Ordenar ciudades alfabéticamente
             const ciudadesOrdenadas = [...ciudadesDisponibles].sort((a, b) =>
                 a.nombreCiudad.localeCompare(b.nombreCiudad)
             );
@@ -123,9 +112,7 @@ function actualizarSelectCiudades() {
     }, 300);
 }
 
-// Función para mostrar notificaciones
 function mostrarNotificacion(mensaje, tipo = 'info') {
-    // Crear elemento de notificación
     const notificacion = document.createElement('div');
     notificacion.style.cssText = `
         position: fixed;
@@ -140,7 +127,6 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
         animation: slideIn 0.3s ease-out;
     `;
 
-    // Aplicar colores según el tipo
     switch (tipo) {
         case 'success':
             notificacion.style.background = '#28a745';
@@ -162,7 +148,6 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
 
     document.body.appendChild(notificacion);
 
-    // Remover después de 5 segundos
     setTimeout(() => {
         notificacion.style.animation = 'slideOut 0.3s ease-in';
         setTimeout(() => {
@@ -173,20 +158,16 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
     }, 5000);
 }
 
-// Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Inicializando aplicación...');
 
-    // Configurar fecha mínima como hoy
     const fechaInput = document.getElementById('departure-date');
     if (fechaInput) {
         fechaInput.min = new Date().toISOString().split('T')[0];
     }
 
-    // Cargar datos necesarios para reservas
     cargarDatosReserva();
 
-    // Manejar formulario de búsqueda
     const searchForm = document.getElementById('flight-search-form');
     if (searchForm) {
         searchForm.addEventListener('submit', function(e) {
@@ -200,39 +181,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // La fecha ahora es opcional
             searchFlights(city, date);
         });
     }
 
-    // Manejar formulario de perfil
-    const profileForm = document.getElementById('user-profile-form');
-    if (profileForm) {
-        profileForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const formData = {
-                firstName: document.getElementById('first-name').value,
-                lastName: document.getElementById('last-name').value,
-                email: document.getElementById('user-email').value,
-                password: document.getElementById('user-password').value
-            };
-
-            // Simular guardado (en el futuro, enviar al servidor)
-            mostrarNotificacion('Perfil actualizado correctamente', 'success');
-            console.log('📝 Datos del perfil:', formData);
-        });
-    }
 
     mostrarNotificacion('¡Bienvenido a SkyBooker! 🛫', 'success');
 });
 
-// Función para buscar vuelos
 function searchFlights(city, date) {
     const resultsSection = document.getElementById('flight-results');
     const container = document.getElementById('flights-container');
 
-    // Crear mensaje de búsqueda
     let searchMessage = `Destino: ${city.toUpperCase()}`;
     if (date) {
         searchMessage += ` • Fecha: ${date}`;
@@ -240,7 +200,6 @@ function searchFlights(city, date) {
         searchMessage += ` • Todas las fechas`;
     }
 
-    // Mostrar sección de resultados y indicador de carga
     container.innerHTML = `
         <div style="text-align: center; padding: 40px;">
             <div style="font-size: 2rem; margin-bottom: 20px;">🔍</div>
@@ -250,7 +209,6 @@ function searchFlights(city, date) {
     `;
     resultsSection.classList.add('show');
 
-    // Realizar la búsqueda en el servidor
     const searchParams = new URLSearchParams();
     searchParams.append('ciudad', city);
     if (date) {
@@ -285,7 +243,6 @@ function searchFlights(city, date) {
         });
 }
 
-// Función para mostrar mensaje cuando no hay vuelos
 function mostrarVuelosVacios(city, date) {
     const container = document.getElementById('flights-container');
     container.innerHTML = `
@@ -301,7 +258,6 @@ function mostrarVuelosVacios(city, date) {
     `;
 }
 
-// Función para mostrar error en la búsqueda
 function mostrarErrorBusqueda(errorMessage) {
     const container = document.getElementById('flights-container');
     container.innerHTML = `
@@ -316,12 +272,10 @@ function mostrarErrorBusqueda(errorMessage) {
     `;
 }
 
-// Función para mostrar vuelos
 function displayFlights(vuelos, cityFilter) {
     const container = document.getElementById('flights-container');
     container.innerHTML = '';
 
-    // Crear encabezado de resultados
     const header = document.createElement('div');
     header.style.cssText = 'margin-bottom: 20px; padding: 15px; background: #e3f2fd; border-radius: 10px; text-align: center;';
     header.innerHTML = `
@@ -336,34 +290,28 @@ function displayFlights(vuelos, cityFilter) {
     });
 }
 
-// Función para crear una tarjeta de vuelo
 function createFlightCard(vuelo, index, selectedDate) {
     const flightCard = document.createElement('div');
     flightCard.className = 'flight-card';
 
-    // Obtener información del vuelo
     const aerolinea = vuelo.aerolinea ? vuelo.aerolinea.nombreAerolinea : 'Aerolínea no disponible';
     const origen = vuelo.aeropuertos && vuelo.aeropuertos.length > 0 ?
         vuelo.aeropuertos[0].ciudad?.nombreCiudad || 'Origen no disponible' : 'Origen no disponible';
     const destino = vuelo.aeropuertos && vuelo.aeropuertos.length > 1 ?
         vuelo.aeropuertos[vuelo.aeropuertos.length - 1].ciudad?.nombreCiudad || 'Destino no disponible' : 'Destino no disponible';
 
-    // Generar horarios simulados
     const departureHour = 6 + (index * 2);
     const arrivalHour = departureHour + 2 + Math.floor(Math.random() * 3);
     const departure = `${departureHour.toString().padStart(2, '0')}:${(Math.random() * 60).toFixed(0).padStart(2, '0')}`;
     const arrival = `${arrivalHour.toString().padStart(2, '0')}:${(Math.random() * 60).toFixed(0).padStart(2, '0')}`;
 
-    // Generar fecha si no se especificó
     let displayDate = selectedDate;
     if (!displayDate) {
-        // Generar fechas futuras aleatorias
         const today = new Date();
         const futureDate = new Date(today.getTime() + (Math.random() * 30 + 1) * 24 * 60 * 60 * 1000); // 1-30 días en el futuro
         displayDate = futureDate.toISOString().split('T')[0];
     }
 
-    // Formatear fecha para mostrar
     const formattedDate = new Date(displayDate).toLocaleDateString('es-ES', {
         weekday: 'short',
         year: 'numeric',
@@ -371,11 +319,9 @@ function createFlightCard(vuelo, index, selectedDate) {
         day: 'numeric'
     });
 
-    // Generar precio simulado
     const basePrice = 180 + (index * 30) + Math.floor(Math.random() * 200);
-    const price = `€${basePrice}`;
+    const price = `$${basePrice}`;
 
-    // Generar duración del vuelo
     const duration = `${2 + Math.floor(Math.random() * 4)}h ${Math.floor(Math.random() * 60)}m`;
 
     flightCard.innerHTML = `
@@ -415,15 +361,12 @@ function createFlightCard(vuelo, index, selectedDate) {
     return flightCard;
 }
 
-// Función para reservar vuelo
 function reserveFlight(flightId, airline, origin, destination, price) {
     console.log('🎫 Iniciando reserva para vuelo:', flightId);
 
-    // Mostrar el formulario de reserva
     const reservationForm = document.getElementById('reservation-form-container');
     reservationForm.style.display = 'block';
 
-    // Actualizar información del vuelo en el formulario
     const flightInfo = document.createElement('div');
     flightInfo.style.cssText = 'background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;';
     flightInfo.innerHTML = `
@@ -433,7 +376,6 @@ function reserveFlight(flightId, airline, origin, destination, price) {
         <p style="margin: 3px 0; color: #155724;"><strong>Precio:</strong> ${price}</p>
     `;
 
-    // Insertar información del vuelo en el formulario
     const form = document.getElementById('reservation-form');
     const existingInfo = form.querySelector('.flight-info');
     if (existingInfo) {
@@ -442,19 +384,15 @@ function reserveFlight(flightId, airline, origin, destination, price) {
     flightInfo.className = 'flight-info';
     form.insertBefore(flightInfo, form.firstChild);
 
-    // Guardar el ID del vuelo en un campo oculto
     document.getElementById('flight-id-input').value = flightId;
 
-    // Actualizar el select de usuarios
     actualizarSelectUsuarios();
 
-    // Desplazarse al formulario suavemente
     reservationForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     mostrarNotificacion('Completa tus datos para confirmar la reserva', 'info');
 }
 
-// Función para cargar ciudades predeterminadas
 function cargarCiudadesPredeterminadas() {
     console.log('🏙️ Cargando ciudades predeterminadas...');
     ciudadesDisponibles = [
@@ -472,7 +410,6 @@ function cargarCiudadesPredeterminadas() {
     actualizarSelectCiudades();
 }
 
-// Función para cargar usuarios predeterminados
 function cargarUsuariosPredeterminados() {
     console.log('👥 Cargando usuarios predeterminados...');
     usuariosDisponibles = [
@@ -484,7 +421,6 @@ function cargarUsuariosPredeterminados() {
     ];
 }
 
-// Función para actualizar el select de usuarios
 function actualizarSelectUsuarios() {
     const selectUsuarios = document.getElementById('user-id-input');
     const loadingIndicator = document.getElementById('user-loading');
@@ -541,7 +477,6 @@ function actualizarSelectUsuarios() {
     }, 300);
 }
 
-// Función para enviar la reserva
 function submitReservation(event) {
     event.preventDefault();
 
@@ -553,13 +488,11 @@ function submitReservation(event) {
         return;
     }
 
-    // Mostrar indicador de carga
     const submitButton = document.getElementById('submit-reservation-btn');
     const originalText = submitButton.textContent;
     submitButton.textContent = '⏳ Procesando reserva...';
     submitButton.disabled = true;
 
-    // Crear objeto de datos para la solicitud
     const reservationData = {
         usuarioId: parseInt(userId),
         vueloId: parseInt(flightId)
@@ -567,7 +500,6 @@ function submitReservation(event) {
 
     console.log('📤 Enviando reserva:', reservationData);
 
-    // Enviar solicitud al servidor
     fetch('/reservas/crear', {
         method: 'POST',
         headers: {
@@ -586,16 +518,12 @@ function submitReservation(event) {
         .then(data => {
             console.log('✅ Reserva creada exitosamente:', data);
 
-            // Ocultar el formulario
             document.getElementById('reservation-form-container').style.display = 'none';
 
-            // Mostrar mensaje de éxito detallado
             mostrarModalExito(data);
 
-            // Limpiar el formulario
             document.getElementById('reservation-form').reset();
 
-            // Remover información del vuelo del formulario
             const flightInfo = document.querySelector('.flight-info');
             if (flightInfo) {
                 flightInfo.remove();
@@ -606,13 +534,11 @@ function submitReservation(event) {
             mostrarNotificacion(`Error al crear la reserva: ${error.message}`, 'error');
         })
         .finally(() => {
-            // Restaurar el botón
             submitButton.textContent = originalText;
             submitButton.disabled = false;
         });
 }
 
-// Función para mostrar modal de éxito
 function mostrarModalExito(data) {
     const modal = document.createElement('div');
     modal.style.cssText = `
@@ -659,7 +585,6 @@ function mostrarModalExito(data) {
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
 
-    // Remover modal al hacer clic fuera
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
             modal.remove();
@@ -667,7 +592,6 @@ function mostrarModalExito(data) {
     });
 }
 
-// Función para cargar reservas
 function fetchReservations() {
     const userId = document.getElementById('user-identifier').value;
     const container = document.getElementById('user-reservations');
@@ -677,7 +601,6 @@ function fetchReservations() {
         return;
     }
 
-    // Mostrar indicador de carga
     container.innerHTML = `
         <div style="text-align: center; padding: 40px;">
             <div style="font-size: 2rem; margin-bottom: 15px;">📋</div>
@@ -687,7 +610,6 @@ function fetchReservations() {
 
     console.log('🔍 Buscando reservas para usuario:', userId);
 
-    // Obtener reservas del servidor
     fetch(`/reservas/usuario/${userId}`)
         .then(response => {
             if (!response.ok) {
@@ -718,7 +640,6 @@ function fetchReservations() {
         });
 }
 
-// Función para mostrar reservas
 function mostrarReservas(reservas) {
     const container = document.getElementById('user-reservations');
 
@@ -774,7 +695,6 @@ function mostrarReservas(reservas) {
     container.innerHTML = reservasHTML;
 }
 
-// Función para mostrar mensaje cuando no hay reservas
 function mostrarReservasVacias() {
     const container = document.getElementById('user-reservations');
     container.innerHTML = `
@@ -790,7 +710,6 @@ function mostrarReservasVacias() {
     `;
 }
 
-// Función para mostrar error al cargar reservas
 function mostrarErrorReservas(errorMessage) {
     const container = document.getElementById('user-reservations');
     container.innerHTML = `
@@ -809,7 +728,6 @@ function mostrarErrorReservas(errorMessage) {
     `;
 }
 
-// Función para debugear datos
 function debugearDatos() {
     console.log('🔍 Iniciando debug de datos...');
 
@@ -848,7 +766,6 @@ function debugearDatos() {
 
             alert(mensaje);
 
-            // También mostrar en consola para más detalles
             console.table(data.conteos);
             console.log('Ejemplos de vuelos:', data.ejemploVuelos);
 
@@ -859,7 +776,6 @@ function debugearDatos() {
         });
 }
 
-// Función para confirmar cancelación (placeholder)
 function confirmarCancelacion(reservaId) {
     if (confirm('¿Estás seguro de que quieres cancelar esta reserva?')) {
         mostrarNotificacion(`Reserva #${reservaId} cancelada (funcionalidad en desarrollo)`, 'warning');
@@ -867,7 +783,6 @@ function confirmarCancelacion(reservaId) {
     }
 }
 
-// Agregar estilos CSS para las animaciones
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {

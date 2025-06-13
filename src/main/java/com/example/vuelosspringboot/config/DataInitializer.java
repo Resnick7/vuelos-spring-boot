@@ -30,9 +30,8 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        System.out.println("🚀 Iniciando carga de datos iniciales (versión minimalista)...");
+        System.out.println("🚀 Iniciando carga de datos iniciales...");
 
-        // Solo crear los datos básicos necesarios
         crearDatosBasicos();
         System.out.println("🎉 ¡Datos básicos cargados exitosamente!");
     }
@@ -104,14 +103,13 @@ public class DataInitializer implements CommandLineRunner {
         }
         System.out.println("✅ Usuarios: " + usuarios.size());
 
-        // 5. Crear vuelos SÚPER SIMPLES
+        // 5. Crear vuelos
         crearVuelosSimples(aeropuertos, aerolineas);
     }
 
     private void crearVuelosSimples(List<Aeropuerto> aeropuertos, List<Aerolinea> aerolineas) throws Exception {
         List<Vuelo> vuelos = new ArrayList<>();
 
-        // Crear vuelos específicos para evitar duplicados
         Object[][] vuelosDefinidos = {
                 {0, 0, 1}, // Iberia: Madrid -> Barcelona
                 {0, 2, 3}, // Iberia: París -> Londres
